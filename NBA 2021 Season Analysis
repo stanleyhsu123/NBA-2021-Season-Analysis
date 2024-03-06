@@ -1,0 +1,442 @@
+# Installing necessary packages
+library("magrittr") 
+library("dplyr")
+library("ggplot2")
+
+# Read in the data
+df_regular <- read.csv("/kaggle/input/nba-player-stats/2021-2022 NBA Player Stats - Regular.csv", sep=";")
+df_playoffs <- read.csv("/kaggle/input/nba-player-stats/2021-2022 NBA Player Stats - Playoffs.csv", sep=";")
+
+# Preview regular season data
+head(df_regular)
+
+# Preview playoffs data
+head(df_playoffs)
+
+# Name of columns
+names(df_regular)
+df_regular <- subset(df_regular, select = -c(Rk))
+
+# Dimensions of the regular season and playoffs dataset
+# TOT is combined stats since player is on more than one team this year
+print(dim(df_regular))
+df_regular <- subset(df_regular, Tm != 'TOT')
+print(dim(df_regular))
+df_playoffs <- subset(df_playoffs, Tm != 'TOT')
+print(dim(df_playoffs))
+
+# Check to see if there are missing or null values in regular season data
+sum(is.na(df_regular))
+
+# List of all of the team names in the NBA
+# Team names in the NBA
+unique_team_names <- unique(df_regular$Tm)
+print(unique_team_names)
+
+# Top 15 Players by Points per Game
+df_top15_pts <- df_regular %>%
+                arrange(desc(`PTS`)) %>%
+                select(`Player`, `PTS`) %>%
+                head(15)
+ggplot(df_top15_pts, aes(x = reorder(`Player`, -`PTS`), y = `PTS`)) +
+  geom_bar(stat = "identity", fill = "red") +
+  geom_text(aes(label = round(`PTS`, 1)), vjust = -0.2, size = 4.5) +
+  labs(title = "Top 15 Players by Points Per Game",
+       x = "Player Name",
+       y = "Points Per Game") +
+  theme_bw() +
+  theme(plot.title = element_text(size = 19, face = "bold"),
+        axis.title.x = element_text(size = 17),
+        axis.title.y = element_text(size = 17),
+        axis.text.x = element_text(size = 13, angle = 45, hjust = 1),
+        axis.text.y = element_text(size = 13))
+
+# The top 15 players by points per game are Joel Embiid, Lebron  James, Giannis Antetokounmpo, Kevin Durant, Luka Doncic, Trae Young, DeMar DeRozan, Ja Morant, Kyrie Irving, Nikola Jokic, Jayson Tatum, Devin Booker, Donovan Mitchell, Stephen Curry, and Karl-Anthony Towns
+
+# Most Efficient Scorers by Field Goal Percentage for Starters
+# Most Efficient Scorers By Field Goal Percentage (For Starters)
+df_starters <- df_regular[df_regular$GS == df_regular$G, ]
+df_most_efficient_scorers <- df_starters %>%
+                                arrange(desc('FG.')) %>%
+                                select(`Player`, `FG.`) %>%
+                                head(15)
+ggplot(df_most_efficient_scorers, aes(x = reorder(`Player`, -`FG.`), y = `FG.`)) +
+  geom_bar(stat = "identity", fill = "red") +
+  geom_text(aes(label = round(`FG.`, 3)), vjust = -0.2, size = 3.5) +
+  labs(title = "Most Efficient Scorers by Field Goal Percentage",
+       x = "Player Name",
+       y = "Field Goal Percentage") +
+  theme_bw() +
+  theme(plot.title = element_text(size = 17, face = "bold"),
+        axis.title.x = element_text(size = 15),
+        axis.title.y = element_text(size = 15),
+        axis.text.x = element_text(size = 11, angle = 45, hjust = 1),
+        axis.text.y = element_text(size = 11))
+
+# The most efficient scorers by field goal percentage for starters are Jarrett Allen, Deandre Ayton, Bam Adebayo, Giannis Antetokounmpo, Scottie Barnes, Harrison Barnes, Desmond Bane, Bradley Beal, OG Anunoby, Will Barton, LaMelo Ball, Lonzo Ball, RJ Barrett, Saddiq Bey, and Cole Anthony
+
+# Most 3 Pointers Made per Game
+# Not including Buddy Hield because his three pointers made per game is incorrectly calculated
+df_top15_3P <- df_regular[df_regular$Player != "Buddy Hield", ]
+df_top15_3Ps <- df_top15_3P %>%
+                arrange(desc(`X3P`)) %>%
+                select(`Player`, `X3P`) %>%
+                head(15)
+ggplot(df_top15_3Ps, aes(x = reorder(`Player`, -`X3P`), y = `X3P`)) +
+  geom_bar(stat = "identity", fill = "red") +
+  geom_text(aes(label = round(`X3P`, 1)), vjust = -0.2, size = 4.5) +
+  labs(title = "Most 3 Pointers Made Per Game",
+       x = "Player Name",
+       y = "3 Pointers Made Per Game") +
+  theme_bw() +
+  theme(plot.title = element_text(size = 19, face = "bold"),
+        axis.title.x = element_text(size = 17),
+        axis.title.y = element_text(size = 17),
+        axis.text.x = element_text(size = 13, angle = 45, hjust = 1),
+        axis.text.y = element_text(size = 13))
+
+# The players with most 3 pointers made per game are Stephen Curry, Fred VanVleet, Klay Thompson, Donovan Mitchell, Kyrie Irving, Damian Lillard, Anfernee Simons, CJ McCollum, Lonzo Ball, Luka Doncic, Seth Curry, Trae Young, Desmond Bane, Devin Cannady, and Malik Beasley
+
+# Most Free Throws Made Per Game
+df_top15_ft <- df_regular[df_regular$Player != "James Harden", ]
+df_top15_fts <- df_top15_ft %>%
+                arrange(desc(`FT`)) %>%
+                select(`Player`, `FT`) %>%
+                head(15)
+ggplot(df_top15_fts, aes(x = reorder(`Player`, -`FT`), y = `FT`)) +
+  geom_bar(stat = "identity", fill = "red") +
+  geom_text(aes(label = round(`FT`, 1)), vjust = -0.2, size = 4.5) +
+  labs(title = "Most Free Throws Made Per Game",
+       x = "Player Name",
+       y = "Free Throws Made Per Game") +
+  theme_bw() +
+  theme(plot.title = element_text(size = 19, face = "bold"),
+        axis.title.x = element_text(size = 17),
+        axis.title.y = element_text(size = 17),
+        axis.text.x = element_text(size = 13, angle = 45, hjust = 1),
+        axis.text.y = element_text(size = 13))
+
+# The players with the most free throws made per game are Joel Embiid, Giannis Antetokounmpo, Jimmy Butler, DeMar DeRozan, Kevin Durant, Trae Young, Norman Powell, Kristaps Porzingis, Shai Gilgeous-Alexander, Luka Doncic, Damian Lillard, Ja Morant, Jayson Tatum, Karl-Anthony Towns, and Nikola Jokic
+
+# Most Steals Per Game for Starters
+# Not including Tyrese Haliburton because his steals per game is incorrectly calculated
+df_starters <- df_regular[df_regular$GS == df_regular$G, ]
+df_top10_steals <- df_starters[df_starters$Player != "Tyrese Haliburton", ]
+df_top10_stealss <- df_top10_steals %>%
+                arrange(desc(`STL`)) %>%
+                select(`Player`, `STL`) %>%
+                head(10)
+ggplot(df_top10_stealss, aes(x = reorder(`Player`, -`STL`), y = `STL`)) +
+  geom_bar(stat = "identity", fill = "red") +
+  geom_text(aes(label = round(`STL`, 1)), vjust = -0.2, size = 4.5) +
+  labs(title = "Most Steals Per Game for Starters",
+       x = "Player Name",
+       y = "Steals Per Game") +
+  theme_bw() +
+  theme(plot.title = element_text(size = 19, face = "bold"),
+        axis.title.x = element_text(size = 17),
+        axis.title.y = element_text(size = 17),
+        axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
+        axis.text.y = element_text(size = 13))
+
+# The starters that have the most steals per game are Georgios Kalaitzakis, Derrick Walton, Paul George, Brad Wanamaker, Dejounte Murray, Chris Paul, Lonzo Ball, Fred VanVleet, Marcus Smart, and LaMelo Ball
+
+# Most Blocks Per Game for Starters
+# Not including Kristaps Porzingis because his number of blocks is incorrectly calculated
+df_starters <- df_regular[df_regular$GS == df_regular$G, ]
+df_top10_block <- df_starters[df_starters$Player != "Kristaps Porzi??is", ]
+df_top10_blocks <- df_top10_block %>%
+                arrange(desc(`BLK`)) %>%
+                select(`Player`, `BLK`) %>%
+                head(10)
+ggplot(df_top10_blocks, aes(x = reorder(`Player`, -`BLK`), y = `BLK`)) +
+  geom_bar(stat = "identity", fill = "red") +
+  geom_text(aes(label = round(`BLK`, 1)), vjust = -0.2, size = 4.5) +
+  labs(title = "Most Blocks Per Game for Starters",
+       x = "Player Name",
+       y = "Blocks Per Game") +
+  theme_bw() +
+  theme(plot.title = element_text(size = 19, face = "bold"),
+        axis.title.x = element_text(size = 17),
+        axis.title.y = element_text(size = 17),
+        axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
+        axis.text.y = element_text(size = 13))
+
+# The starters that have the most blocks per game are Myles Turner, Anthony Davis, Jaren Jackson Jr., Robert Williams, Rudy Gobert, Evan Mobley, Joel Embiid, Giannis Antetokounmpo, Al Horford, and Jarrett Allen
+
+# Most Fouls per Game
+# Not including Mac McClung because his fouls per game is incorrectly calculated
+df_top10_fouls <- df_regular[df_regular$Player != "Mac McClung", ]
+df_top10_foulss <- df_top10_fouls %>%
+                arrange(desc(`PF`)) %>%
+                select(`Player`, `PF`) %>%
+                head(10)
+ggplot(df_top10_foulss, aes(x = reorder(`Player`, -`PF`), y = `PF`)) +
+  geom_bar(stat = "identity", fill = "red") +
+  geom_text(aes(label = round(`PF`, 1)), vjust = -0.2, size = 4.5) +
+  labs(title = "Most Fouls Per Game",
+       x = "Player Name",
+       y = "Fouls Per Game") +
+  theme_bw() +
+  theme(plot.title = element_text(size = 19, face = "bold"),
+        axis.title.x = element_text(size = 17),
+        axis.title.y = element_text(size = 17),
+        axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
+        axis.text.y = element_text(size = 13))
+
+# The players with the most fouls per game are Domantas Sabonis, Zavier SImpson, Jae'Sean Tate, Karl-Anthony Towns, Jaren Jackson Jr., Jusuf Nurkic, Dillon Brooks, Jonas Valanciunas, Pascal Siakam, and Reggie Perry
+
+# Most Turnovers per Game for Starters
+df_turnovers <- df_regular[df_regular$GS == df_regular$G, ]
+df_top10_turnovers <- df_regular %>%
+                arrange(desc(`TOV`)) %>%
+                select(`Player`, `TOV`) %>%
+                head(10)
+ggplot(df_top10_turnovers, aes(x = reorder(`Player`, -`TOV`), y = `TOV`)) +
+  geom_bar(stat = "identity", fill = "red") +
+  geom_text(aes(label = round(`TOV`, 1)), vjust = -0.2, size = 4.5) +
+  labs(title = "Most Turnovers Per Game for Starters",
+       x = "Player Name",
+       y = "Turnovers Per Game") +
+  theme_bw() +
+  theme(plot.title = element_text(size = 19, face = "bold"),
+        axis.title.x = element_text(size = 17),
+        axis.title.y = element_text(size = 17),
+        axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
+        axis.text.y = element_text(size = 13))
+
+# The starters with the most turnovers per game are James Harden, Luka Doncic, Paul George, Georgios Kalaitzakis, Trae Young, Nikola Jokic, Russell Westbrook, Cade Cunningham, Derrick Walton, and Darius Garland
+
+# Top 5 Bench Players by Points Per Game
+# Not including Davis Bertans because his points per game is incorrectly calculated
+df_bench_players <- df_regular[df_regular$GS == 0, ]
+df_bench_playerss <- df_bench_players[df_bench_players$Player != "D?vis Bert?ns", ]
+df_top5_bench_players <- df_bench_playerss %>%
+                            arrange(desc('PTS')) %>%
+                            select('Player', 'PTS') %>%
+                            head(3)
+ggplot(df_top5_bench_players, aes(x = reorder(`Player`, -`PTS`), y = `PTS`)) +
+  geom_bar(stat = "identity", fill = "red") +
+  geom_text(aes(label = round(`PTS`, 1)), vjust = -0.2, size = 4.5) +
+  labs(title = "Top 3 Bench Players by Points Per Game",
+       x = "Player Name",
+       y = "Points Per Game") +
+  theme_bw() +
+  theme(plot.title = element_text(size = 19, face = "bold"),
+        axis.title.x = element_text(size = 17),
+        axis.title.y = element_text(size = 17),
+        axis.text.x = element_text(size = 13, angle = 45, hjust = 1),
+        axis.text.y = element_text(size = 13))
+
+# The top 3 bench players by points per game are Justin Anderson, Santi Aldama, and Ryan Arcidiacono
+
+# Top 15 Players by Assists Per Game
+# Not including James Harden and Tyrese Haliburton because their assists are incorrectly calculated
+df_regular_ast <- df_regular[df_regular$Player != "James Harden", ]
+df_regular_astt <- df_regular_ast[df_regular_ast$Player != "Tyrese Haliburton", ]
+df_top15_ast <- df_regular_astt %>%
+                arrange(desc(`AST`)) %>%
+                select(`Player`, `AST`) %>%
+                head(15)
+ggplot(df_top15_ast, aes(x = reorder(`Player`, -`AST`), y = `AST`)) +
+  geom_bar(stat = "identity", fill = "red") +
+  geom_text(aes(label = round(`AST`, 1)), vjust = -0.2, size = 4.5) +
+  labs(title = "Top 15 Players by Assists Per Game",
+       x = "Player Name",
+       y = "Assists Per Game") +
+  theme_bw() +
+  theme(plot.title = element_text(size = 19, face = "bold"),
+        axis.title.x = element_text(size = 17),
+        axis.title.y = element_text(size = 17),
+        axis.text.x = element_text(size = 13, angle = 45, hjust = 1),
+        axis.text.y = element_text(size = 13))
+
+# The top 15 players by assists per game are Chris Paul, Trae Young, Dejounte Murray, Luka Doncic, Darius Garland, Nikola Jokic, LaMelo Ball, Kyle Lowry, Zavier Simpson, Damian Lillard, D'Angelo Russell, Russell Westbrook, Brad Wanamaker, Derrick Walton, and Draymond Green
+
+# Top 15 Players by Rebounds per Game
+# Not including Domantas Sabonis because his rebound number is incorrectly calculated
+df_regular_trb <- df_regular[df_regular$Player != "Domantas Sabonis", ]
+df_top10_trb <- df_regular_trb %>%
+                 arrange(desc(`TRB`)) %>%
+                 select(`Player`, `TRB`) %>%
+                 head(15)
+ggplot(df_top10_trb, aes(x = reorder(`Player`, -`TRB`), y = `TRB`)) +
+  geom_bar(stat = "identity", fill = "red") +
+  geom_text(aes(label = round(`TRB`, 1)), vjust = -0.2, size = 4.5) +
+  labs(title = "Top 15 Players by Rebounds Per Game",
+       x = "Player",
+       y = "Rebounds Per Game") +
+  theme_bw() +
+  theme(plot.title = element_text(size = 19, face = "bold"),
+        axis.title.x = element_text(size = 17),
+        axis.title.y = element_text(size = 17),
+        axis.text.x = element_text(size = 13, angle = 45, hjust = 1),
+        axis.text.y = element_text(size = 13))
+# The top 15 players by rebounds per game are Rudy Gobert, Nikola Jokic, Jaylen Hoard, Clint Capela, Joel Embiid, Giannis Antetokounmpo, Jonas Valanciunas, Jusuf Nurkic, Nikola Vucevic, Jarrett Allen, Wendell Carter Jr., Andre Drummond, Deandre Ayton, Bam Adebayo, and Christian Wood
+
+# Top Scoring Starting Point Guards 
+df_starters <- df_regular[df_regular$GS == df_regular$G, ]
+df_scoring_pgs <- df_starters[df_starters$Pos == 'PG', ]
+df_top10_scoring_pgs <- df_scoring_pgs %>%
+                            arrange(desc('PTS')) %>%
+                            select('Player', 'PTS') %>%
+                            head(15)
+ggplot(df_top10_scoring_pgs, aes(x = reorder(`Player`, -`PTS`), y = `PTS`)) +
+  geom_bar(stat = "identity", fill = "orange") +
+  geom_text(aes(label = round(`PTS`, 1)), vjust = -0.2, size = 4.5) +
+  labs(title = "Top Scoring Starting Point Guards",
+       x = "Player Name",
+       y = "Points Per Game") +
+  theme_bw() +
+  theme(plot.title = element_text(size = 19, face = "bold"),
+        axis.title.x = element_text(size = 17),
+        axis.title.y = element_text(size = 17),
+        axis.text.x = element_text(size = 13, angle = 45, hjust = 1),
+        axis.text.y = element_text(size = 13))
+
+# The top scoring starting point guards are Luka Doncic, Kyrie Irving, Stephen Curry, Shai Gilgeous-Alexander, De'Aaron Fox, James Harden, Darius Garland, LaMelo Ball, Malcolm Brogdon, Tyrese Haliburton, Cade Cunningham, Cole Anthony, Mike Conley, Lonzo Ball, and Spencer Dinwiddie
+
+# Top Scoring Starting Shooting Guards 
+# Not including Seth Curry and Nickeil Alexander-Walker because their points per game are calculated incorrectly
+df_starters <- df_regular[df_regular$GS == df_regular$G, ]
+df_starters_1 <- df_starters[df_starters$Player != "Seth Curry", ]
+df_starters_2 <- df_starters_1[df_starters_1$Player != "Nickeil Alexander-Walker", ]
+df_starter_sg <- df_starters_2[df_starters_2$Player != "Joel Ayayi", ]
+df_scoring_sgs <- df_starter_sg[df_starter_sg$Pos == 'SG', ]
+df_top10_scoring_sgs <- df_scoring_sgs %>%
+                            arrange(desc('PTS')) %>%
+                            select('Player', 'PTS') %>%
+                            head(15)
+ggplot(df_top10_scoring_sgs, aes(x = reorder(`Player`, -`PTS`), y = `PTS`)) +
+  geom_bar(stat = "identity", fill = "blue") +
+  geom_text(aes(label = round(`PTS`, 1)), vjust = -0.2, size = 4.5) +
+  labs(title = "Top Scoring Starting Shooting Guards",
+       x = "Player Name",
+       y = "Points Per Game") +
+  theme_bw() +
+  theme(plot.title = element_text(size = 19, face = "bold"),
+        axis.title.x = element_text(size = 17),
+        axis.title.y = element_text(size = 17),
+        axis.text.x = element_text(size = 13, angle = 45, hjust = 1),
+        axis.text.y = element_text(size = 13))
+
+# The top scoring starting shooting guards are Devin Booker, Bradley Beal, Anthony Edwards, James Harden, CJ McCollum, Caris LeVert, Buddy Hield, Jalen Green, Reggie Jackson, Will Barton, Tyrese Haliburton, Evan Fournier, Kentavious Caldwell-Pope, Josh Giddey, and Justin Holiday
+
+# Top Scoring Starting Small Forwards 
+df_starters <- df_regular[df_regular$GS == df_regular$G, ]
+df_scoring_sfs <- df_starters[df_starters$Pos == 'SF', ]
+df_top10_scoring_sfs <- df_scoring_sfs %>%
+                            arrange(desc('PTS')) %>%
+                            select('Player', 'PTS') %>%
+                            head(15)
+ggplot(df_top10_scoring_sfs, aes(x = reorder(`Player`, -`PTS`), y = `PTS`)) +
+  geom_bar(stat = "identity", fill = "purple") +
+  geom_text(aes(label = round(`PTS`, 1)), vjust = -0.2, size = 4.5) +
+  labs(title = "Top Scoring Starting Small Forwards",
+       x = "Player Name",
+       y = "Points Per Game") +
+  theme_bw() +
+  theme(plot.title = element_text(size = 19, face = "bold"),
+        axis.title.x = element_text(size = 17),
+        axis.title.y = element_text(size = 17),
+        axis.text.x = element_text(size = 13, angle = 45, hjust = 1),
+        axis.text.y = element_text(size = 13))
+
+# The top scoring starting small forwards are LeBron James, Zach LaVine, Paul George, Jaylen Brown, Brandon Ingram, Jimmy Butler, RJ Barrett, Josh Hart, Desmond Bane, Georgios Kalaitzakis, Lugentz Dort, OG Anunoby, Saddiq Bey, Mikal Bridges, and Joe Harris
+
+# Top Scoring Starting Power Forwards
+df_starters <- df_regular[df_regular$GS == df_regular$G, ]
+df_scoring_pfs <- df_starters[df_starters$Pos == 'PF', ]
+df_top10_scoring_pfs <- df_scoring_pfs %>%
+                            arrange(desc('PTS')) %>%
+                            select('Player', 'PTS') %>%
+                            head(15)
+ggplot(df_top10_scoring_pfs, aes(x = reorder(`Player`, -`PTS`), y = `PTS`)) +
+  geom_bar(stat = "identity", fill = "brown") +
+  geom_text(aes(label = round(`PTS`, 1)), vjust = -0.2, size = 4.5) +
+  labs(title = "Top Scoring Starting Power Forwards",
+       x = "Player Name",
+       y = "Points Per Game") +
+  theme_bw() +
+  theme(plot.title = element_text(size = 19, face = "bold"),
+        axis.title.x = element_text(size = 17),
+        axis.title.y = element_text(size = 17),
+        axis.text.x = element_text(size = 13, angle = 45, hjust = 1),
+        axis.text.y = element_text(size = 13))
+
+# The top scoring starting power forwards are Giannis Antetokounmpo, Kevin Durant, DeMar DeRozan, Miles Bridges, Jerami Grant, Bojan Bogdanovic, Tobias Harris, Kyle Kuzma, Harrison Barnes, Jaren Jackson Jr., Scottie Barnes, Aaron Gordon, Lauri Markkanen, Dorian Finney-Smith, and Jae Crowder
+
+# Top Scoring Starting Centers
+df_starters <- df_regular[df_regular$GS == df_regular$G, ]
+df_scoring_cs <- df_starters[df_starters$Pos == 'C', ]
+df_top10_scoring_cs <- df_scoring_cs %>%
+                            arrange(desc('PTS')) %>%
+                            select('Player', 'PTS') %>%
+                            head(15)
+ggplot(df_top10_scoring_cs, aes(x = reorder(`Player`, -`PTS`), y = `PTS`)) +
+  geom_bar(stat = "identity", fill = "green") +
+  geom_text(aes(label = round(`PTS`, 1)), vjust = -0.2, size = 4.5) +
+  labs(title = "Top Scoring Starting Centers",
+       x = "Player Name",
+       y = "Points Per Game") +
+  theme_bw() +
+  theme(plot.title = element_text(size = 19, face = "bold"),
+        axis.title.x = element_text(size = 17),
+        axis.title.y = element_text(size = 17),
+        axis.text.x = element_text(size = 13, angle = 45, hjust = 1),
+        axis.text.y = element_text(size = 13))
+
+# The top scoring starting centers are Joel Embiid, Nikola Jokic, Karl-Anthony Towns, Anthony Davis, Bam Adebayo, Deandre Ayton, Jarrett Allen, Rudy Gobert, Jusuf Nurkic, Drew Eubanks, Myles Turner, Andre Drummond, Al Horford, Isaiah Stewart, and Mason Plumlee
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
